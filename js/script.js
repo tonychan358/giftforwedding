@@ -19,19 +19,28 @@ const currentMsg = document.getElementById('current-msg');
 let currentIndex = -1;
 
 // 1. 初始化
-window.onload = function() {
-    // 模擬載入時間
-    setTimeout(() => {
-        if (typeof WISHES_DATA !== 'undefined' && WISHES_DATA.length > 0) {
-            renderPlaylist();
-            countBadge.textContent = WISHES_DATA.length;
+    async function init() {
+        try {
+            // 模擬載入時間 (可選，只是為了視覺流暢)
+            // await new Promise(r => setTimeout(r, 500)); 
+
+            if (typeof WISHES_DATA === 'undefined' || WISHES_DATA.length === 0) {
+                alert("目前沒有祝福資料，請檢查 js/data.js");
+                return;
+            }
+
+            playlistData = WISHES_DATA; // 直接使用 data.js 裡的變數
+            renderPlaylist(playlistData);
+            
+            // 隱藏 Loading
             loader.style.opacity = '0';
             setTimeout(() => loader.style.display = 'none', 500);
-        } else {
-            alert("找不到資料 (js/data.js)，請檢查檔案內容。");
+
+        } catch (error) {
+            console.error(error);
+            loader.textContent = "載入失敗";
         }
-    }, 800);
-};
+    }
 
 // 2. 渲染列表
 function renderPlaylist() {
