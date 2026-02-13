@@ -1,6 +1,5 @@
 const WISHES_DATA = [
     {
-    {
         "type": "audio",
         "name": "你美麗的姐Emily❤️",
         "cover": "https://drive.google.com/uc?export=download&id=1jUQR6EPCnibgBHiH8d6isDWX70cx-w9t",
