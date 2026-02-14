@@ -1,128 +1,165 @@
-// DOM 元素
-const loader = document.getElementById('loader');
-const playlistContent = document.getElementById('playlist-content');
-const countBadge = document.getElementById('count-badge');
-const audioPlayer = document.getElementById('audio-player');
-const videoPlayer = document.getElementById('video-player');
-
-// Stage 元素
-const welcomeView = document.getElementById('welcome-view');
-const vinylView = document.getElementById('vinyl-view');
-const videoView = document.getElementById('video-view');
-const vinylDisk = document.getElementById('vinyl-disk');
-const albumCover = document.getElementById('album-cover');
-const stageInfo = document.getElementById('stage-info');
-const currentName = document.getElementById('current-name');
-const currentMsg = document.getElementById('current-msg');
-
-// 狀態變數
-let currentIndex = -1;
-
-// 1. 初始化
-    async function init() {
-        try {
-            // 模擬載入時間 (可選，只是為了視覺流暢)
-            // await new Promise(r => setTimeout(r, 500)); 
-
-            if (typeof WISHES_DATA === 'undefined' || WISHES_DATA.length === 0) {
-                alert("目前沒有祝福資料，請檢查 js/data.js");
-                return;
-            }
-
-            playlistData = WISHES_DATA; // 直接使用 data.js 裡的變數
-            renderPlaylist(playlistData);
-            
-            // 隱藏 Loading
-            loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 500);
-
-        } catch (error) {
-            console.error(error);
-            loader.textContent = "載入失敗";
-        }
-    }
-
-// 2. 渲染列表
-function renderPlaylist() {
-    playlistContent.innerHTML = "";
-    
-    WISHES_DATA.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'track-item';
-        
-        // 判斷類型圖示
-        const icon = item.type === 'video' ? '🎬' : '🎵';
-        
-        div.innerHTML = `
-            <div class="track-thumb">
-                <img src="${item.cover}" loading="lazy">
-                <div class="type-icon">${icon}</div>
-            </div>
-            <div class="track-info">
-                <div class="track-name">${item.name}</div>
-                <div class="track-msg">${item.message}</div>
-            </div>
-        `;
-        
-        div.onclick = () => playIndex(index);
-        playlistContent.appendChild(div);
-    });
+/* === 全域設定 === */
+:root {
+    --bg-color: #121212;
+    --panel-bg: #1e1e1e;
+    --accent: #d4a5a5; /* 藕粉金 */
+    --text-main: #fff;
+    --text-sub: #aaa;
+    --border: #333;
 }
 
-// 3. 播放核心邏輯
-function playIndex(index) {
-    const item = WISHES_DATA[index];
-    currentIndex = index;
-
-    // UI: 列表高亮
-    document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.track-item')[index].classList.add('active');
-
-    // UI: 顯示底部文字
-    currentName.textContent = item.name;
-    currentMsg.textContent = item.message;
-    stageInfo.classList.add('show');
-
-    // 停止所有正在播的
-    stopAll();
-    welcomeView.classList.remove('active');
-
-    if (item.type === 'video') {
-        // === 影片模式 ===
-        vinylView.style.display = 'none';
-        videoView.style.display = 'flex';
-        
-        videoPlayer.src = item.src;
-        videoPlayer.poster = item.cover; // 縮圖
-        videoPlayer.play().catch(e => console.log("瀏覽器阻擋自動播放，需點擊"));
-
-    } else {
-        // === 黑膠模式 ===
-        videoView.style.display = 'none';
-        vinylView.style.display = 'flex';
-        
-        // 更換唱片封面
-        albumCover.src = item.cover;
-        
-        audioPlayer.src = item.src;
-        audioPlayer.play().then(() => {
-            vinylDisk.classList.add('playing'); // 開始旋轉
-        }).catch(e => console.log("瀏覽器阻擋自動播放，需點擊"));
-
-        // 播完後停止旋轉
-        audioPlayer.onended = () => {
-            vinylDisk.classList.remove('playing');
-        };
-    }
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    height: 100vh;
+    overflow: hidden;
 }
 
-// 停止所有播放器
-function stopAll() {
-    audioPlayer.pause();
-    audioPlayer.currentTime = 0;
-    
-    videoPlayer.pause();
-    videoPlayer.currentTime = 0;
-    
-    vinylDisk.classList.remove('playing');
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
+
+/* === Loading 遮罩 === */
+#loader {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    transition: opacity 0.5s;
+}
+.loader-content { text-align: center; }
+.spinner {
+    width: 40px; height: 40px; border: 4px solid #333;
+    border-top: 4px solid var(--accent); border-radius: 50%;
+    animation: spin 1s linear infinite; margin: 0 auto 10px;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* === 左/上：播放舞台 (Stage) === */
+#stage-area {
+    flex: 4.5; /* 手機版高度佔比 */
+    background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+}
+
+/* 歡迎畫面 */
+#welcome-view { display: none; text-align: center; color: #555; }
+#welcome-view.active { display: block; }
+#welcome-view h1 { font-weight: 300; letter-spacing: 2px; color: var(--accent); margin: 0; }
+
+/* 黑膠唱片元件 */
+.vinyl-wrapper {
+    display: none; /* JS 控制顯示 */
+    width: 260px; height: 260px;
+    justify-content: center; align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+.vinyl-record {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: repeating-radial-gradient(#111 0, #111 2px, #222 3px, #222 4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    display: flex; justify-content: center; align-items: center;
+    animation: spin 6s linear infinite;
+    animation-play-state: paused;
+}
+.vinyl-record.playing { animation-play-state: running; }
+
+.album-cover-mask {
+    width: 45%; height: 45%; border-radius: 50%; overflow: hidden;
+    border: 3px solid #fff; position: relative;
+}
+.album-cover { width: 100%; height: 100%; object-fit: cover; }
+
+/* 影片元件 */
+.video-wrapper {
+    display: none; width: 100%; height: 100%; background: #000;
+    justify-content: center; align-items: center;
+}
+video { width: 100%; height: 100%; max-height: 100%; }
+
+/* 底部字幕資訊 */
+.stage-caption {
+    position: absolute; bottom: 20px; left: 0; width: 100%;
+    text-align: center; pointer-events: none; z-index: 20;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+    opacity: 0; transition: opacity 0.5s;
+}
+.stage-caption.show { opacity: 1; }
+.stage-caption h2 { margin: 0; font-size: 1.4rem; color: var(--accent); }
+#current-msg { margin: 5px 20px 0; font-size: 0.95rem; color: #eee; }
+
+/* === 右/下：播放列表 (Playlist) === */
+#playlist-area {
+    flex: 5.5;
+    background: var(--panel-bg);
+    display: flex; flex-direction: column;
+}
+
+.playlist-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(30,30,30,0.95);
+    backdrop-filter: blur(5px);
+}
+.playlist-header h3 { margin: 0; font-size: 1rem; color: #fff; }
+#count-badge { background: #333; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+
+#playlist-content {
+    flex: 1; overflow-y: auto; padding: 10px;
+}
+
+/* 列表項目 */
+.track-item {
+    display: flex; align-items: center;
+    padding: 12px; margin-bottom: 8px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    cursor: pointer; transition: 0.2s;
+    border: 1px solid transparent;
+}
+.track-item:hover { background: rgba(255,255,255,0.08); }
+.track-item.active {
+    background: rgba(212, 165, 165, 0.15);
+    border-color: var(--accent);
+}
+
+.track-thumb {
+    width: 50px; height: 50px; border-radius: 8px;
+    position: relative; margin-right: 15px; flex-shrink: 0;
+}
+.track-thumb img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
+.type-icon {
+    position: absolute; bottom: -5px; right: -5px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #000;
+    font-size: 12px; display: flex; justify-content: center; align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.track-info { flex: 1; overflow: hidden; }
+.track-name { font-weight: bold; font-size: 1rem; color: #fff; margin-bottom: 3px; }
+.track-msg { font-size: 0.85rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* === RWD: 電腦/iPad 版 (橫向佈局) === */
+@media (min-width: 768px) {
+    .app-container { flex-direction: row; }
+    #stage-area { flex: 6; border-bottom: none; border-right: 1px solid var(--border); }
+    #playlist-area { flex: 4; max-width: 400px; }
+    .vinyl-wrapper { width: 380px; height: 380px; }
+    .stage-caption { bottom: 40px; }
+    .stage-caption h2 { font-size: 2rem; }
+}
+
+
