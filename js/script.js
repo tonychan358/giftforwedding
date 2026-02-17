@@ -18,10 +18,10 @@ const currentMsg = document.getElementById('current-msg');
 // 狀態變數
 let currentIndex = -1;
 
-// 0. 修復 Favicon 404 (自動加入一個透明圖標)
+// 0. 修復 Favicon 404
 const link = document.createElement('link');
 link.rel = 'icon';
-link.href = 'data:,'; // 空白圖標
+link.href = 'data:,';
 document.head.appendChild(link);
 
 // 1. 初始化
@@ -46,22 +46,32 @@ window.onload = function() {
         
         if(countBadge) countBadge.textContent = WISHES_DATA.length;
         
-        // 正常關閉
         if(loader) loader.style.display = 'none';
 
-        // === 新增：綁定手動播放/暫停功能 ===
-        // 點擊黑膠唱片可以暫停/播放
+        // 綁定手動播放/暫停功能
         vinylDisk.addEventListener('click', () => {
+            // 防呆：如果還沒選歌
+            if (!audioPlayer.src) {
+                alert("請先從列表選擇一首祝福！");
+                return;
+            }
+
             if(audioPlayer.paused) {
-                audioPlayer.play();
-                vinylDisk.classList.add('playing');
+                const playPromise = audioPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        vinylDisk.classList.add('playing');
+                    }).catch(err => {
+                        console.error("手動播放失敗:", err);
+                        handlePlayError(err, WISHES_DATA[currentIndex]);
+                    });
+                }
             } else {
                 audioPlayer.pause();
                 vinylDisk.classList.remove('playing');
             }
         });
 
-        // 點擊影片可以暫停/播放
         videoPlayer.addEventListener('click', () => {
             if(videoPlayer.paused) videoPlayer.play();
             else videoPlayer.pause();
@@ -83,8 +93,9 @@ function renderPlaylist() {
         div.className = 'track-item';
         const icon = item.type === 'video' ? '🎬' : '🎵';
         
-        // 使用 placehold.co 代替不穩定的 via.placeholder.com
-        const cover = item.cover || "https://placehold.co/150x150/333/fff?text=No+Img";
+        const cover = (item.cover && item.cover.startsWith('http')) 
+            ? item.cover 
+            : "https://placehold.co/150x150/333/fff?text=No+Img";
         
         const msgHtml = (item.message && item.message.trim() !== "") 
             ? `<div class="track-msg">${item.message}</div>` 
@@ -110,6 +121,14 @@ function playIndex(index) {
     const item = WISHES_DATA[index];
     currentIndex = index;
 
+    console.log(`準備播放: ${item.name}`, item.src);
+
+    // 檢查網址
+    if (!item.src || !item.src.startsWith('http')) {
+        alert(`無法播放 "${item.name}"\n連結無效`);
+        return;
+    }
+
     // UI 更新
     document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
     if(document.querySelectorAll('.track-item')[index]) {
@@ -123,24 +142,27 @@ function playIndex(index) {
     }
     stageInfo.classList.add('show');
 
-    stopAll();
+    // === 重要修正：這裡呼叫 stopAll，但不做激進重置 ===
+    stopAll(); 
     welcomeView.classList.remove('active');
 
-    const displayCover = item.cover || "https://placehold.co/400x400/222/fff?text=Wedding";
+    const displayCover = (item.cover && item.cover.startsWith('http')) 
+        ? item.cover 
+        : "https://placehold.co/400x400/222/fff?text=Wedding";
 
     if (item.type === 'video') {
         // === 影片模式 ===
         vinylView.style.display = 'none';
         videoView.style.display = 'flex';
-        videoPlayer.src = item.src;
-        videoPlayer.poster = displayCover;
         
-        // 嘗試播放
+        videoPlayer.poster = displayCover;
+        videoPlayer.src = item.src;
+        videoPlayer.load(); // 影片通常需要明確 load
+
         const playPromise = videoPlayer.play();
         if (playPromise !== undefined) {
             playPromise.catch(error => {
                 console.error("影片播放失敗:", error);
-                // 可以在這裡顯示一個「播放按鈕」提示使用者點擊
             });
         }
     } else {
@@ -151,8 +173,8 @@ function playIndex(index) {
         albumCover.onerror = function() { this.src = 'https://placehold.co/400x400/555/fff?text=No+Image'; };
 
         audioPlayer.src = item.src;
+        // 注意：這裡不呼叫 audioPlayer.load()，直接 play，讓瀏覽器自己處理
         
-        // 嘗試播放
         const playPromise = audioPlayer.play();
         if (playPromise !== undefined) {
             playPromise
@@ -160,10 +182,8 @@ function playIndex(index) {
                 vinylDisk.classList.add('playing');
             })
             .catch(error => {
-                console.error("音訊播放失敗 (請檢查 Drive 權限或連結):", error);
+                handlePlayError(error, item);
                 vinylDisk.classList.remove('playing');
-                // 提示使用者
-                alert(`無法自動播放 "${item.name}"\n\n可能原因：\n1. Google Drive 檔案權限未公開\n2. 網路連線逾時\n\n請嘗試點擊黑膠唱片手動播放。`);
             });
         }
 
@@ -171,8 +191,38 @@ function playIndex(index) {
     }
 }
 
+// === 修正後的 StopAll：只暫停，不重置 src ===
+// 這樣可以避免 NotSupportedError (因為 src 突然變空)
 function stopAll() {
-    if(audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
-    if(videoPlayer) { videoPlayer.pause(); videoPlayer.currentTime = 0; }
-    if(vinylDisk) vinylDisk.classList.remove('playing');
+    if(!audioPlayer.paused) {
+        audioPlayer.pause();
+    }
+    
+    if(!videoPlayer.paused) {
+        videoPlayer.pause();
+    }
+    
+    vinylDisk.classList.remove('playing');
+}
+
+// 錯誤處理輔助函式
+function handlePlayError(error, item) {
+    console.error("播放錯誤詳細資訊:", error);
+    
+    if (error.name === "NotSupportedError") {
+        // 這通常代表瀏覽器不支援此檔案格式，或伺服器 header 問題
+        const isIphone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
+        let msg = `無法播放音訊：${item.name}\n\n`;
+        msg += `瀏覽器回報：格式不支援 (NotSupportedError)\n`;
+        
+        if (isIphone) {
+             msg += `提示：iOS 對 Google Drive 連結支援度較差，請確認檔案是標準 .mp3 或 .m4a 格式。`;
+        } else {
+             msg += `可能原因：\n1. 檔案格式特殊 (如 .wav, .ogg)\n2. Google Drive 流量限制\n\n建議：試著重新整理網頁再試一次。`;
+        }
+        alert(msg);
+    } else {
+        console.warn("自動播放被阻擋或網路問題");
+    }
 }
