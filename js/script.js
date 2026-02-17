@@ -18,11 +18,17 @@ const currentMsg = document.getElementById('current-msg');
 // 狀態變數
 let currentIndex = -1;
 
+// 0. 修復 Favicon 404 (自動加入一個透明圖標)
+const link = document.createElement('link');
+link.rel = 'icon';
+link.href = 'data:,'; // 空白圖標
+document.head.appendChild(link);
+
 // 1. 初始化
 window.onload = function() {
     console.log("Script loaded. Checking data...");
     
-    // 強制在 3 秒後關閉 loading，避免永遠卡死
+    // 強制在 3 秒後關閉 loading
     setTimeout(() => {
         if(loader && loader.style.display !== 'none') {
             console.warn("Loading timeout forced.");
@@ -43,9 +49,26 @@ window.onload = function() {
         // 正常關閉
         if(loader) loader.style.display = 'none';
 
+        // === 新增：綁定手動播放/暫停功能 ===
+        // 點擊黑膠唱片可以暫停/播放
+        vinylDisk.addEventListener('click', () => {
+            if(audioPlayer.paused) {
+                audioPlayer.play();
+                vinylDisk.classList.add('playing');
+            } else {
+                audioPlayer.pause();
+                vinylDisk.classList.remove('playing');
+            }
+        });
+
+        // 點擊影片可以暫停/播放
+        videoPlayer.addEventListener('click', () => {
+            if(videoPlayer.paused) videoPlayer.play();
+            else videoPlayer.pause();
+        });
+
     } catch (e) {
         console.error(e);
-        // 錯誤會被 index.html 的 onerror 捕獲並顯示
         throw e; 
     }
 };
@@ -60,11 +83,9 @@ function renderPlaylist() {
         div.className = 'track-item';
         const icon = item.type === 'video' ? '🎬' : '🎵';
         
-        // === 修正點：更換備用圖片服務 ===
         // 使用 placehold.co 代替不穩定的 via.placeholder.com
         const cover = item.cover || "https://placehold.co/150x150/333/fff?text=No+Img";
         
-        // 文字選填處理
         const msgHtml = (item.message && item.message.trim() !== "") 
             ? `<div class="track-msg">${item.message}</div>` 
             : '';
@@ -105,7 +126,6 @@ function playIndex(index) {
     stopAll();
     welcomeView.classList.remove('active');
 
-    // === 修正點：播放時的封面若無效也使用新服務 ===
     const displayCover = item.cover || "https://placehold.co/400x400/222/fff?text=Wedding";
 
     if (item.type === 'video') {
@@ -114,19 +134,38 @@ function playIndex(index) {
         videoView.style.display = 'flex';
         videoPlayer.src = item.src;
         videoPlayer.poster = displayCover;
-        videoPlayer.play().catch(e => console.log("瀏覽器阻擋自動播放，需點擊"));
+        
+        // 嘗試播放
+        const playPromise = videoPlayer.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.error("影片播放失敗:", error);
+                // 可以在這裡顯示一個「播放按鈕」提示使用者點擊
+            });
+        }
     } else {
         // === 黑膠模式 ===
         videoView.style.display = 'none';
         vinylView.style.display = 'flex';
         albumCover.src = displayCover;
-        // 處理大圖載入失敗的情況
         albumCover.onerror = function() { this.src = 'https://placehold.co/400x400/555/fff?text=No+Image'; };
 
         audioPlayer.src = item.src;
-        audioPlayer.play().then(() => {
-            vinylDisk.classList.add('playing');
-        }).catch(e => console.log("瀏覽器阻擋自動播放，需點擊"));
+        
+        // 嘗試播放
+        const playPromise = audioPlayer.play();
+        if (playPromise !== undefined) {
+            playPromise
+            .then(() => {
+                vinylDisk.classList.add('playing');
+            })
+            .catch(error => {
+                console.error("音訊播放失敗 (請檢查 Drive 權限或連結):", error);
+                vinylDisk.classList.remove('playing');
+                // 提示使用者
+                alert(`無法自動播放 "${item.name}"\n\n可能原因：\n1. Google Drive 檔案權限未公開\n2. 網路連線逾時\n\n請嘗試點擊黑膠唱片手動播放。`);
+            });
+        }
 
         audioPlayer.onended = () => vinylDisk.classList.remove('playing');
     }
