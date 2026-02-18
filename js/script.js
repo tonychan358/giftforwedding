@@ -28,7 +28,6 @@ document.head.appendChild(link);
 window.onload = function() {
     console.log("Script loaded. Checking data...");
     
-    // 強制在 3 秒後關閉 loading
     setTimeout(() => {
         if(loader && loader.style.display !== 'none') {
             console.warn("Loading timeout forced.");
@@ -45,23 +44,19 @@ window.onload = function() {
         renderPlaylist();
         
         if(countBadge) countBadge.textContent = WISHES_DATA.length;
-        
         if(loader) loader.style.display = 'none';
 
-        // 綁定手動播放/暫停功能
+        // 綁定手動播放/暫停
         vinylDisk.addEventListener('click', () => {
-            // 防呆：如果還沒選歌
             if (!audioPlayer.src) {
                 alert("請先從列表選擇一首祝福！");
                 return;
             }
-
             if(audioPlayer.paused) {
                 const playPromise = audioPlayer.play();
                 if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        vinylDisk.classList.add('playing');
-                    }).catch(err => {
+                    playPromise.then(() => vinylDisk.classList.add('playing'))
+                    .catch(err => {
                         console.error("手動播放失敗:", err);
                         handlePlayError(err, WISHES_DATA[currentIndex]);
                     });
@@ -116,28 +111,24 @@ function renderPlaylist() {
     });
 }
 
-// === 新增：修正 Google Drive 網址的函式 ===
-function fixDriveUrl(url, type) {
+// === 關鍵修正：使用 Google CDN 網域 ===
+function fixDriveUrl(url) {
     if (!url) return "";
     
-    // 如果不是 Google Drive 連結，直接回傳
-    if (!url.includes("drive.google.com") && !url.includes("docs.google.com")) {
-        return url;
-    }
+    // 提取 ID
+    let id = "";
+    try {
+        if (url.includes("id=")) id = url.match(/id=([a-zA-Z0-9_-]+)/)[1];
+        else if (url.includes("/d/")) id = url.match(/\/d\/([a-zA-Z0-9_-]+)/)[1];
+    } catch(e) { return url; }
 
-    // 1. 嘗試將 drive.google.com 替換為 docs.google.com (有時支援度較好)
-    // let fixedUrl = url.replace("drive.google.com", "docs.google.com");
-    // 保持 drive.google.com 也可以，重點是下面的後綴
-    
-    let fixedUrl = url;
-
-    // 2. 關鍵修正：在網址最後面偷加一個參數 "&hash=.mp3"
-    // 這會強制瀏覽器認為這是一個媒體檔案，而不是下載檔
-    if (type === 'video') {
-        return fixedUrl + "&type=.mp4"; 
-    } else {
-        return fixedUrl + "&type=.mp3";
+    if (id) {
+        // 使用 lh3.googleusercontent.com/d/{id}
+        // 這個網域通常被視為 "內容傳遞" (CDN)，比較不會強制瀏覽器下載檔案
+        // 這能解決大部分 NotSupportedError 的問題
+        return `https://lh3.googleusercontent.com/d/${id}`;
     }
+    return url;
 }
 
 // 3. 播放核心邏輯
@@ -147,7 +138,6 @@ function playIndex(index) {
 
     console.log(`準備播放: ${item.name}`);
 
-    // 檢查網址
     if (!item.src || !item.src.startsWith('http')) {
         alert(`無法播放 "${item.name}"\n連結無效`);
         return;
@@ -174,8 +164,8 @@ function playIndex(index) {
         : "https://placehold.co/400x400/222/fff?text=Wedding";
 
     // === 應用網址修正 ===
-    const safeSrc = fixDriveUrl(item.src, item.type);
-    console.log("修正後的播放網址:", safeSrc);
+    const safeSrc = fixDriveUrl(item.src);
+    console.log("修正後的播放網址 (CDN):", safeSrc);
 
     if (item.type === 'video') {
         // === 影片模式 ===
@@ -184,10 +174,6 @@ function playIndex(index) {
         
         videoPlayer.poster = displayCover;
         videoPlayer.src = safeSrc;
-        
-        // 加入 crossOrigin 屬性可能有助於某些跨域問題
-        videoPlayer.setAttribute('crossorigin', 'anonymous');
-        
         videoPlayer.load();
 
         const playPromise = videoPlayer.play();
@@ -204,7 +190,6 @@ function playIndex(index) {
         albumCover.onerror = function() { this.src = 'https://placehold.co/400x400/555/fff?text=No+Image'; };
 
         audioPlayer.src = safeSrc;
-        audioPlayer.setAttribute('crossorigin', 'anonymous');
 
         // 嘗試播放
         const playPromise = audioPlayer.play();
@@ -224,30 +209,16 @@ function playIndex(index) {
 }
 
 function stopAll() {
-    if(!audioPlayer.paused) {
-        audioPlayer.pause();
-    }
-    if(!videoPlayer.paused) {
-        videoPlayer.pause();
-    }
+    if(!audioPlayer.paused) audioPlayer.pause();
+    if(!videoPlayer.paused) videoPlayer.pause();
     vinylDisk.classList.remove('playing');
 }
 
-// 錯誤處理輔助函式
 function handlePlayError(error, item) {
     console.error("播放錯誤詳細資訊:", error);
     
     if (error.name === "NotSupportedError") {
-        const isIphone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
-        let msg = `無法播放音訊：${item.name}\n\n`;
-        msg += `瀏覽器回報：格式不支援 (NotSupportedError)\n`;
-        
-        if (isIphone) {
-             msg += `提示：您的瀏覽器似乎拒絕了 Google Drive 的音訊串流。\n建議：請嘗試將網址複製到 Chrome (桌面版) 測試，或檢查該檔案是否為標準 mp3。`;
-        } else {
-             msg += `原因：瀏覽器無法辨識 Google Drive 的檔案類型。\n\n我們已嘗試自動修正網址，但仍失敗。請確認 Drive 檔案權限已設為「公開 (知道連結的任何人)」。`;
-        }
+        const msg = `無法播放：${item.name}\n\n原因：瀏覽器拒絕播放 Google Drive 的檔案格式。\n\n建議解決方案：\n1. 請確認檔案權限已設為「公開」。\n2. (強烈建議) 將音訊/影片檔下載，直接上傳到 GitHub，並更新 data.js 連結。`;
         alert(msg);
     } else {
         console.warn("自動播放被阻擋或網路問題");
