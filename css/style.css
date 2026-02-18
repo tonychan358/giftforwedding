@@ -2,246 +2,208 @@
 :root {
     --bg-color: #121212;
     --panel-bg: #1e1e1e;
-    --accent: #d4a5a5; /* 藕粉金 */
+    --accent: #d4a5a5;
     --text-main: #fff;
     --border: #333;
 }
 
-* {
-    box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
     margin: 0; padding: 0;
     background-color: var(--bg-color);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    /* 關鍵優化：使用 dvh (Dynamic Viewport Height) 解決手機網址列遮擋問題 */
-    height: 100dvh; 
-    width: 100%;
-    overflow: hidden; /* 禁止整頁捲動，只允許列表捲動 */
+    height: 100dvh; width: 100%; overflow: hidden;
 }
 
 .app-container { 
-    display: flex; 
-    flex-direction: column; 
-    height: 100%; 
-    width: 100%;
+    display: flex; flex-direction: column; height: 100%; width: 100%; 
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* === Loading 遮罩 === */
+/* === Loading === */
 #loader {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #000; z-index: 9999;
     display: flex; justify-content: center; align-items: center;
-    transition: opacity 0.5s;
 }
-.loader-content { text-align: center; }
 .spinner {
-    width: 40px; height: 40px; border: 4px solid #333;
-    border-top: 4px solid var(--accent); border-radius: 50%;
-    animation: spin 1s linear infinite; margin: 0 auto 10px;
+    width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); 
+    border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;
 }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* === 左/上：播放舞台 (Stage) === */
+/* === 上半部：播放舞台 (Stage) === */
 #stage-area {
-    /* 手機版：高度設為固定比例或 auto，避免吃掉太多列表空間 */
-    height: 45%; 
-    flex-shrink: 0; /* 禁止被壓縮 */
-    background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%);
+    /* [預設狀態]：佔據大部分空間，讓照片盡量大 */
+    flex: 1; 
     position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
     overflow: hidden;
-    border-bottom: 1px solid var(--border);
-    padding: 10px;
+    background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%);
+    transition: all 0.4s ease;
+    padding-bottom: 20px; /* 留點空間給字幕 */
 }
 
 /* 歡迎畫面 */
-#welcome-view { display: none; text-align: center; color: #555; padding: 20px; }
+#welcome-view { display: none; text-align: center; color: #555; }
 #welcome-view.active { display: block; }
-#welcome-view h1 { font-weight: 300; letter-spacing: 2px; color: var(--accent); margin: 0 0 10px 0; font-size: 1.5rem; }
-#welcome-view p { font-size: 0.9rem; margin: 0; }
+#welcome-view h1 { font-weight: 300; letter-spacing: 1px; color: var(--accent); margin: 0 0 5px 0; font-size: 1.8rem; }
 
-/* === 音訊模式：簡約合照設計 === */
+/* === 音訊模式 === */
 .audio-wrapper {
-    display: none; /* JS 控制 */
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    justify-content: center; /* 垂直置中 */
-    gap: 15px; /* 減少間距 */
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+    gap: 20px;
 }
 
-/* 合照相框 (RWD優化) */
+/* 相框：預設放大 */
 .photo-frame-simple {
-    /* 手機版：寬度改用相對單位，最大不超過 250px */
-    width: 65vw; 
-    max-width: 250px;
-    /* 保持正方形 */
+    width: 85vw; /* 幾乎佔滿寬度 */
+    max-width: 320px; /* 但不超過 320px */
     aspect-ratio: 1 / 1;
     background: #000;
     border-radius: 12px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     overflow: hidden;
     border: 1px solid #333;
     position: relative;
-    flex-shrink: 0;
+    transition: all 0.4s ease;
 }
-
-.photo-frame-simple img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+.photo-frame-simple img { width: 100%; height: 100%; object-fit: cover; }
 
 /* 播放器容器 */
 .player-box {
-    width: 90%;
-    max-width: 320px;
-    background: #000;
-    border-radius: 8px;
-    padding: 8px;
-    box-sizing: border-box;
+    width: 90%; max-width: 320px;
+    background: #000; border-radius: 8px; padding: 5px;
     border: 1px solid #222;
-}
-
-.player-label {
-    font-size: 11px;
-    color: #666;
-    margin-bottom: 4px;
-    text-align: center;
-    letter-spacing: 1px;
-}
-
-#audio-embed-container {
-    width: 100%;
-    /* Google Player 高度優化 */
-    height: 90px; 
-    border-radius: 4px;
+    height: 60px; /* 固定高度，不佔位 */
     overflow: hidden;
-    background: #000;
 }
-#audio-embed-container iframe { width: 100%; height: 100%; border: none; display: block; }
+#audio-embed-container { width: 100%; height: 100%; border-radius: 4px; overflow: hidden; background: #000; }
+#audio-embed-container iframe { width: 100%; height: 100%; border: none; display: block; margin-top: -8px; /* 微調 iframe 位置 */ }
 
 /* === 影片元件 === */
 .video-wrapper {
-    display: none; 
-    width: 100%; 
-    height: 100%; 
-    background: #000;
-    justify-content: center; 
-    align-items: center;
+    display: none; width: 100%; height: 100%; background: #000;
+    justify-content: center; align-items: center;
 }
-/* 確保影片 iframe 佔滿舞台但保持比例 */
-.video-wrapper iframe {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-}
+.video-wrapper iframe { width: 100%; height: 100%; }
 
-/* 底部字幕資訊 (浮在舞台下方) */
+/* 字幕 */
 .stage-caption {
     position: absolute; bottom: 10px; left: 0; width: 100%;
     text-align: center; pointer-events: none; z-index: 20;
+    transition: opacity 0.3s;
 }
 #current-msg { 
-    margin: 0 auto; 
-    font-size: 0.9rem; color: #eee; 
-    background: rgba(0,0,0,0.7); 
-    display: inline-block; 
-    padding: 6px 15px; 
-    border-radius: 20px;
-    max-width: 90%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 auto; font-size: 0.9rem; color: #fff; 
+    background: rgba(0,0,0,0.6); display: inline-block; 
+    padding: 6px 15px; border-radius: 20px; max-width: 90%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     backdrop-filter: blur(2px);
 }
 
-/* === 右/下：播放列表 (Playlist) === */
+/* === 下半部：播放列表 (Playlist) === */
 #playlist-area {
-    /* 佔據剩餘空間 */
-    flex: 1; 
+    /* [預設狀態]：只露出標題和一點點內容 */
+    height: 180px; /* 固定高度，約顯示 2 行 */
     background: var(--panel-bg);
-    display: flex; 
-    flex-direction: column;
-    min-height: 0; /* 關鍵：防止 flex 子元素溢出 */
+    display: flex; flex-direction: column;
+    border-top: 1px solid #333;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+    z-index: 50;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .playlist-header {
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
+    padding: 15px 20px;
+    border-bottom: 1px solid #333;
     display: flex; justify-content: space-between; align-items: center;
-    background: rgba(30,30,30,0.95);
-    backdrop-filter: blur(5px);
-    flex-shrink: 0;
+    background: rgba(30,30,30,0.98);
+    cursor: pointer; /* 讓使用者知道可以點 */
 }
-.playlist-header h3 { margin: 0; font-size: 0.95rem; color: #fff; }
-#count-badge { background: #333; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; color: #ccc; }
+.header-left { display: flex; align-items: center; gap: 10px; }
+.playlist-header h3 { margin: 0; font-size: 1rem; color: #fff; }
+#count-badge { background: #444; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; color: #ccc; }
+
+#toggle-list-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--accent);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+}
 
 #playlist-content {
     flex: 1; 
-    overflow-y: auto; /* 允許垂直捲動 */
+    overflow-y: auto; 
     padding: 10px;
-    /* 關鍵優化：iOS 慣性捲動 */
-    -webkit-overflow-scrolling: touch; 
-    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* 列表項目 */
 .track-item {
     display: flex; align-items: center;
     padding: 10px; margin-bottom: 8px;
     background: rgba(255,255,255,0.03);
     border-radius: 8px;
-    cursor: pointer; transition: 0.2s;
-    border: 1px solid transparent;
-    /* 點擊範圍優化 */
-    min-height: 60px;
+    cursor: pointer;
 }
-.track-item:hover { background: rgba(255,255,255,0.08); }
 .track-item.active { background: rgba(212, 165, 165, 0.15); border-color: var(--accent); }
-
-.track-thumb {
-    width: 45px; height: 45px; border-radius: 6px;
-    position: relative; margin-right: 12px; flex-shrink: 0;
-}
+.track-thumb { width: 45px; height: 45px; border-radius: 6px; margin-right: 12px; flex-shrink: 0; }
 .track-thumb img { width: 100%; height: 100%; border-radius: 6px; object-fit: cover; }
-.type-icon {
-    position: absolute; bottom: -4px; right: -4px;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--accent); color: #000;
-    font-size: 10px; display: flex; justify-content: center; align-items: center;
-}
 .track-info { flex: 1; overflow: hidden; }
 .track-name { font-weight: bold; font-size: 0.95rem; color: #fff; margin-bottom: 3px; }
 .track-msg { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* === RWD: 電腦/iPad 版 (橫向佈局) === */
+/* === 狀態變化：當列表展開時 (.list-expanded) === */
+body.list-expanded #stage-area {
+    height: 120px; /* 舞台縮小 */
+    flex: none; /* 移除 flex 彈性，強制固定高度 */
+    padding: 10px;
+    justify-content: flex-start; /* 內容靠上 */
+}
+
+/* 展開時：隱藏照片，只留播放器，節省空間 */
+body.list-expanded .photo-frame-simple {
+    display: none; 
+}
+body.list-expanded #welcome-view { display: none; }
+body.list-expanded .stage-caption { display: none; }
+
+/* 展開時：列表佔滿剩餘空間 */
+body.list-expanded #playlist-area {
+    flex: 1; /* 吃掉剩餘空間 */
+    height: auto; /* 解除固定高度 */
+}
+
+/* === PC 版 (維持左右佈局) === */
 @media (min-width: 768px) {
     .app-container { flex-direction: row; }
     
     #stage-area { 
-        height: auto; /* 恢復自動高度 */
-        flex: 6; 
-        border-bottom: none; 
-        border-right: 1px solid var(--border); 
+        flex: 6; height: 100% !important; /* PC版不受JS影響 */
+        border-bottom: none; border-right: 1px solid var(--border); 
         padding: 40px;
+        justify-content: center;
     }
     
-    #playlist-area { flex: 4; max-width: 400px; }
-    
-    .audio-wrapper { gap: 40px; flex-direction: row; }
-    
-    .photo-frame-simple { 
-        width: 350px; 
-        max-width: none;
-    }
-    
-    .player-box { max-width: 350px; padding: 15px; }
+    .photo-frame-simple { width: 350px; max-width: none; display: block !important; }
+    .player-box { max-width: 350px; padding: 10px; height: auto; }
     #audio-embed-container { height: 100px; }
+    
+    #playlist-area { 
+        flex: 4; max-width: 400px; height: 100% !important;
+        border-top: none; 
+    }
+    
+    /* PC版隱藏切換按鈕，因為空間夠大 */
+    #toggle-list-btn { display: none; }
+    .playlist-header { cursor: default; }
 }
