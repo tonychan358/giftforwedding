@@ -46,7 +46,7 @@ window.onload = function() {
         if(countBadge) countBadge.textContent = WISHES_DATA.length;
         if(loader) loader.style.display = 'none';
 
-        // 綁定手動播放/暫停
+        // 綁定手動播放/暫停 (僅限音訊模式)
         vinylDisk.addEventListener('click', () => {
             if (!audioPlayer.src) {
                 alert("請先從列表選擇一首祝福！");
@@ -58,18 +58,13 @@ window.onload = function() {
                     playPromise.then(() => vinylDisk.classList.add('playing'))
                     .catch(err => {
                         console.error("手動播放失敗:", err);
-                        handlePlayError(err, WISHES_DATA[currentIndex]);
+                        alert("播放失敗，請檢查檔案權限");
                     });
                 }
             } else {
                 audioPlayer.pause();
                 vinylDisk.classList.remove('playing');
             }
-        });
-
-        videoPlayer.addEventListener('click', () => {
-            if(videoPlayer.paused) videoPlayer.play();
-            else videoPlayer.pause();
         });
 
     } catch (e) {
@@ -111,23 +106,32 @@ function renderPlaylist() {
     });
 }
 
-// === 關鍵修正：使用 Google CDN 網域 ===
-function fixDriveUrl(url) {
+// === 核心工具：轉換為 Embed 連結 ===
+function getDriveEmbedLink(url) {
     if (!url) return "";
-    
-    // 提取 ID
     let id = "";
     try {
         if (url.includes("id=")) id = url.match(/id=([a-zA-Z0-9_-]+)/)[1];
         else if (url.includes("/d/")) id = url.match(/\/d\/([a-zA-Z0-9_-]+)/)[1];
-    } catch(e) { return url; }
+    } catch(e) { return null; }
 
     if (id) {
-        // 使用 lh3.googleusercontent.com/d/{id}
-        // 這個網域通常被視為 "內容傳遞" (CDN)，比較不會強制瀏覽器下載檔案
-        // 這能解決大部分 NotSupportedError 的問題
-        return `https://lh3.googleusercontent.com/d/${id}`;
+        // 這就是你發現的那個神氣連結！
+        return `https://drive.google.com/file/d/${id}/preview`;
     }
+    return null;
+}
+
+function getDirectLink(url) {
+    // 這是給音訊用的舊連結 (為了保留旋轉特效)
+    if (!url) return "";
+    let id = "";
+    try {
+        if (url.includes("id=")) id = url.match(/id=([a-zA-Z0-9_-]+)/)[1];
+        else if (url.includes("/d/")) id = url.match(/\/d\/([a-zA-Z0-9_-]+)/)[1];
+    } catch(e) { return null; }
+
+    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
     return url;
 }
 
@@ -135,13 +139,6 @@ function fixDriveUrl(url) {
 function playIndex(index) {
     const item = WISHES_DATA[index];
     currentIndex = index;
-
-    console.log(`準備播放: ${item.name}`);
-
-    if (!item.src || !item.src.startsWith('http')) {
-        alert(`無法播放 "${item.name}"\n連結無效`);
-        return;
-    }
 
     // UI 更新
     document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
@@ -163,64 +160,58 @@ function playIndex(index) {
         ? item.cover 
         : "https://placehold.co/400x400/222/fff?text=Wedding";
 
-    // === 應用網址修正 ===
-    const safeSrc = fixDriveUrl(item.src);
-    console.log("修正後的播放網址 (CDN):", safeSrc);
-
     if (item.type === 'video') {
-        // === 影片模式 ===
+        // === 影片模式 (使用 Embed Iframe) ===
         vinylView.style.display = 'none';
         videoView.style.display = 'flex';
         
-        videoPlayer.poster = displayCover;
-        videoPlayer.src = safeSrc;
-        videoPlayer.load();
+        // 嘗試取得 Embed 連結
+        const embedSrc = getDriveEmbedLink(item.src);
 
-        const playPromise = videoPlayer.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.error("影片播放失敗:", error);
-            });
+        if (embedSrc) {
+            // 如果是 Drive 影片，使用 iframe 播放器 (解決所有格式問題)
+            // 我們動態產生一個 iframe 塞進去
+            videoView.innerHTML = `<iframe src="${embedSrc}" width="100%" height="100%" style="border:none;" allow="autoplay"></iframe>`;
+        } else {
+            // 如果不是 Drive 影片 (例如其他 mp4 直連)，使用原本的 video 標籤
+            videoView.innerHTML = `<video id="video-player" controls playsinline width="100%" height="100%"></video>`;
+            const vPlayer = videoView.querySelector('video');
+            vPlayer.poster = displayCover;
+            vPlayer.src = item.src;
+            vPlayer.play().catch(e => console.log("需互動播放"));
         }
+
     } else {
-        // === 黑膠模式 ===
+        // === 黑膠模式 (保持不變) ===
+        // 我們不對音訊使用 Embed，因為那樣會出現一個很醜的播放器，而且黑膠不會轉
         videoView.style.display = 'none';
         vinylView.style.display = 'flex';
         albumCover.src = displayCover;
         albumCover.onerror = function() { this.src = 'https://placehold.co/400x400/555/fff?text=No+Image'; };
 
-        audioPlayer.src = safeSrc;
+        const directSrc = getDirectLink(item.src);
+        audioPlayer.src = directSrc;
 
-        // 嘗試播放
         const playPromise = audioPlayer.play();
         if (playPromise !== undefined) {
             playPromise
-            .then(() => {
-                vinylDisk.classList.add('playing');
-            })
+            .then(() => vinylDisk.classList.add('playing'))
             .catch(error => {
-                handlePlayError(error, item);
+                console.error("音訊播放錯誤:", error);
                 vinylDisk.classList.remove('playing');
+                alert(`無法播放音訊：${item.name}\n\n這可能是檔案格式問題。建議將音訊檔下載後，改為使用本地檔案播放。`);
             });
         }
-
         audioPlayer.onended = () => vinylDisk.classList.remove('playing');
     }
 }
 
 function stopAll() {
     if(!audioPlayer.paused) audioPlayer.pause();
-    if(!videoPlayer.paused) videoPlayer.pause();
-    vinylDisk.classList.remove('playing');
-}
-
-function handlePlayError(error, item) {
-    console.error("播放錯誤詳細資訊:", error);
     
-    if (error.name === "NotSupportedError") {
-        const msg = `無法播放：${item.name}\n\n原因：瀏覽器拒絕播放 Google Drive 的檔案格式。\n\n建議解決方案：\n1. 請確認檔案權限已設為「公開」。\n2. (強烈建議) 將音訊/影片檔下載，直接上傳到 GitHub，並更新 data.js 連結。`;
-        alert(msg);
-    } else {
-        console.warn("自動播放被阻擋或網路問題");
-    }
+    // 影片停止邏輯修改：
+    // 因為 iframe 無法從外部暫停，我們直接清空 videoView 的內容來強制停止
+    videoView.innerHTML = ""; 
+    
+    vinylDisk.classList.remove('playing');
 }
