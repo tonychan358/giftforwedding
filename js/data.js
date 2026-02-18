@@ -17,7 +17,7 @@ const WISHES_DATA = [
         "type": "audio",
         "name": "Tung Tung & Thomas",
         "cover": "https://drive.google.com/thumbnail?id=1NMgXctS1m5EZ9k7UM49TpBJxWm68Y527&sz=w800",
-        "src": "https://drive.google.com/uc?export=download&id=15g0E6-stwMhqvIiWKGEOfxiKkRUpz2ci",
+        "src": "https://drive.google.com/file/d/15g0E6-stwMhqvIiWKGEOfxiKkRUpz2ci/preview",
         "message": "卓琳 & Lonely 祝你們新婚快樂！願主的恩典充滿你們的婚姻，心心相印，攜手共度美好人生，幸福美滿、和諧共融。願愛與信仰在你們的生活中常伴隨，永遠相愛，共享主的祝福！"
     },
     {
