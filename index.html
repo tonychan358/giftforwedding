@@ -2,14 +2,12 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>給Lonely最愛的新娘子Lilian </title>
-    <!-- 引入樣式 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>給Lonely最愛的新娘子Lilian</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <!-- 載入中遮罩 -->
     <div id="loader">
         <div class="loader-content">
             <div class="spinner"></div>
@@ -18,57 +16,51 @@
     </div>
 
     <div class="app-container">
-        <!-- 上半部/左側：播放舞台 (Stage) -->
+        <!-- 上半部：播放舞台 (預設佔大版面) -->
         <section id="stage-area">
             
-            <!-- 預設歡迎畫面 -->
             <div id="welcome-view" class="active">
                 <div class="welcome-text">
                     <h1>Happy Wedding</h1>
-                    <p>請從列表選擇一則祝福播放</p>
+                    <p>點擊下方列表播放祝福</p>
                 </div>
             </div>
 
-            <!-- 音訊模式：簡約合照 + 播放器 -->
+            <!-- 音訊模式 -->
             <div class="audio-wrapper" id="audio-view">
-                <!-- 合照展示區 -->
                 <div class="photo-frame-simple">
-                    <img id="audio-cover-img" src="" alt="Friend Photo">
+                    <img id="audio-cover-img" src="" alt="Cover">
                 </div>
                 
-                <!-- 播放器區 -->
                 <div class="player-box">
-                    <div class="player-label">正在播放錄音...</div>
-                    <div id="audio-embed-container">
-                        <!-- JS 會在這裡插入 iframe -->
-                    </div>
+                    <div id="audio-embed-container"></div>
                 </div>
             </div>
 
-            <!-- 影片模式：播放器 -->
-            <div class="video-wrapper" id="video-view">
-                <!-- JS 會在這裡動態插入 Iframe -->
-            </div>
+            <!-- 影片模式 -->
+            <div class="video-wrapper" id="video-view"></div>
 
-            <!-- 底部資訊列 -->
             <div class="stage-caption" id="stage-info">
                 <div id="current-msg"></div>
             </div>
         </section>
 
-        <!-- 下半部/右側：播放列表 (Playlist) -->
+        <!-- 下半部：播放列表 (預設收起) -->
         <section id="playlist-area">
-            <div class="playlist-header">
-                <h3>祝福列表</h3>
-                <span id="count-badge">0</span>
+            <!-- 點擊這個 Header 也可以切換展開/收起 -->
+            <div class="playlist-header" onclick="togglePlaylist()">
+                <div class="header-left">
+                    <h3>祝福列表</h3>
+                    <span id="count-badge">0</span>
+                </div>
+                <button id="toggle-list-btn">🔼 展開</button>
             </div>
             <div id="playlist-content">
-                <!-- JS 會自動在這裡產生列表 -->
+                <!-- JS 生成列表 -->
             </div>
         </section>
     </div>
 
-    <!-- 引入資料與邏輯 -->
     <script src="js/data.js"></script>
     <script src="js/script.js"></script>
 </body>
