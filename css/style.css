@@ -1,75 +1,247 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wedding Player - 給最愛的妳</title>
-    <!-- 引入樣式 -->
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+/* === 全域設定 === */
+:root {
+    --bg-color: #121212;
+    --panel-bg: #1e1e1e;
+    --accent: #d4a5a5; /* 藕粉金 */
+    --text-main: #fff;
+    --border: #333;
+}
 
-    <!-- 載入中遮罩 -->
-    <div id="loader">
-        <div class="loader-content">
-            <div class="spinner"></div>
-            <p>正在準備驚喜...</p>
-        </div>
-    </div>
+* {
+    box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+}
 
-    <div class="app-container">
-        <!-- 上半部/左側：播放舞台 (Stage) -->
-        <section id="stage-area">
-            
-            <!-- 預設歡迎畫面 -->
-            <div id="welcome-view" class="active">
-                <div class="welcome-text">
-                    <h1>Happy Wedding</h1>
-                    <p>請從列表選擇一則祝福播放</p>
-                </div>
-            </div>
+body {
+    margin: 0; padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* 關鍵優化：使用 dvh (Dynamic Viewport Height) 解決手機網址列遮擋問題 */
+    height: 100dvh; 
+    width: 100%;
+    overflow: hidden; /* 禁止整頁捲動，只允許列表捲動 */
+}
 
-            <!-- 音訊模式：簡約合照 + 播放器 -->
-            <div class="audio-wrapper" id="audio-view">
-                <!-- 合照展示區 -->
-                <div class="photo-frame-simple">
-                    <img id="audio-cover-img" src="" alt="Friend Photo">
-                </div>
-                
-                <!-- 播放器區 -->
-                <div class="player-box">
-                    <div class="player-label">正在播放錄音...</div>
-                    <div id="audio-embed-container">
-                        <!-- JS 會在這裡插入 iframe -->
-                    </div>
-                </div>
-            </div>
+.app-container { 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+    width: 100%;
+}
 
-            <!-- 影片模式：播放器 -->
-            <div class="video-wrapper" id="video-view">
-                <!-- JS 會在這裡動態插入 Iframe -->
-            </div>
+/* === Loading 遮罩 === */
+#loader {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    transition: opacity 0.5s;
+}
+.loader-content { text-align: center; }
+.spinner {
+    width: 40px; height: 40px; border: 4px solid #333;
+    border-top: 4px solid var(--accent); border-radius: 50%;
+    animation: spin 1s linear infinite; margin: 0 auto 10px;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-            <!-- 底部資訊列 -->
-            <div class="stage-caption" id="stage-info">
-                <div id="current-msg"></div>
-            </div>
-        </section>
+/* === 左/上：播放舞台 (Stage) === */
+#stage-area {
+    /* 手機版：高度設為固定比例或 auto，避免吃掉太多列表空間 */
+    height: 45%; 
+    flex-shrink: 0; /* 禁止被壓縮 */
+    background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    padding: 10px;
+}
 
-        <!-- 下半部/右側：播放列表 (Playlist) -->
-        <section id="playlist-area">
-            <div class="playlist-header">
-                <h3>祝福列表</h3>
-                <span id="count-badge">0</span>
-            </div>
-            <div id="playlist-content">
-                <!-- JS 會自動在這裡產生列表 -->
-            </div>
-        </section>
-    </div>
+/* 歡迎畫面 */
+#welcome-view { display: none; text-align: center; color: #555; padding: 20px; }
+#welcome-view.active { display: block; }
+#welcome-view h1 { font-weight: 300; letter-spacing: 2px; color: var(--accent); margin: 0 0 10px 0; font-size: 1.5rem; }
+#welcome-view p { font-size: 0.9rem; margin: 0; }
 
-    <!-- 引入資料與邏輯 -->
-    <script src="js/data.js"></script>
-    <script src="js/script.js"></script>
-</body>
-</html>
+/* === 音訊模式：簡約合照設計 === */
+.audio-wrapper {
+    display: none; /* JS 控制 */
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    justify-content: center; /* 垂直置中 */
+    gap: 15px; /* 減少間距 */
+}
+
+/* 合照相框 (RWD優化) */
+.photo-frame-simple {
+    /* 手機版：寬度改用相對單位，最大不超過 250px */
+    width: 65vw; 
+    max-width: 250px;
+    /* 保持正方形 */
+    aspect-ratio: 1 / 1;
+    background: #000;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    overflow: hidden;
+    border: 1px solid #333;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.photo-frame-simple img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 播放器容器 */
+.player-box {
+    width: 90%;
+    max-width: 320px;
+    background: #000;
+    border-radius: 8px;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #222;
+}
+
+.player-label {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+#audio-embed-container {
+    width: 100%;
+    /* Google Player 高度優化 */
+    height: 90px; 
+    border-radius: 4px;
+    overflow: hidden;
+    background: #000;
+}
+#audio-embed-container iframe { width: 100%; height: 100%; border: none; display: block; }
+
+/* === 影片元件 === */
+.video-wrapper {
+    display: none; 
+    width: 100%; 
+    height: 100%; 
+    background: #000;
+    justify-content: center; 
+    align-items: center;
+}
+/* 確保影片 iframe 佔滿舞台但保持比例 */
+.video-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+}
+
+/* 底部字幕資訊 (浮在舞台下方) */
+.stage-caption {
+    position: absolute; bottom: 10px; left: 0; width: 100%;
+    text-align: center; pointer-events: none; z-index: 20;
+}
+#current-msg { 
+    margin: 0 auto; 
+    font-size: 0.9rem; color: #eee; 
+    background: rgba(0,0,0,0.7); 
+    display: inline-block; 
+    padding: 6px 15px; 
+    border-radius: 20px;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    backdrop-filter: blur(2px);
+}
+
+/* === 右/下：播放列表 (Playlist) === */
+#playlist-area {
+    /* 佔據剩餘空間 */
+    flex: 1; 
+    background: var(--panel-bg);
+    display: flex; 
+    flex-direction: column;
+    min-height: 0; /* 關鍵：防止 flex 子元素溢出 */
+}
+
+.playlist-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(30,30,30,0.95);
+    backdrop-filter: blur(5px);
+    flex-shrink: 0;
+}
+.playlist-header h3 { margin: 0; font-size: 0.95rem; color: #fff; }
+#count-badge { background: #333; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; color: #ccc; }
+
+#playlist-content {
+    flex: 1; 
+    overflow-y: auto; /* 允許垂直捲動 */
+    padding: 10px;
+    /* 關鍵優化：iOS 慣性捲動 */
+    -webkit-overflow-scrolling: touch; 
+    overscroll-behavior: contain;
+}
+
+/* 列表項目 */
+.track-item {
+    display: flex; align-items: center;
+    padding: 10px; margin-bottom: 8px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    cursor: pointer; transition: 0.2s;
+    border: 1px solid transparent;
+    /* 點擊範圍優化 */
+    min-height: 60px;
+}
+.track-item:hover { background: rgba(255,255,255,0.08); }
+.track-item.active { background: rgba(212, 165, 165, 0.15); border-color: var(--accent); }
+
+.track-thumb {
+    width: 45px; height: 45px; border-radius: 6px;
+    position: relative; margin-right: 12px; flex-shrink: 0;
+}
+.track-thumb img { width: 100%; height: 100%; border-radius: 6px; object-fit: cover; }
+.type-icon {
+    position: absolute; bottom: -4px; right: -4px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); color: #000;
+    font-size: 10px; display: flex; justify-content: center; align-items: center;
+}
+.track-info { flex: 1; overflow: hidden; }
+.track-name { font-weight: bold; font-size: 0.95rem; color: #fff; margin-bottom: 3px; }
+.track-msg { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* === RWD: 電腦/iPad 版 (橫向佈局) === */
+@media (min-width: 768px) {
+    .app-container { flex-direction: row; }
+    
+    #stage-area { 
+        height: auto; /* 恢復自動高度 */
+        flex: 6; 
+        border-bottom: none; 
+        border-right: 1px solid var(--border); 
+        padding: 40px;
+    }
+    
+    #playlist-area { flex: 4; max-width: 400px; }
+    
+    .audio-wrapper { gap: 40px; flex-direction: row; }
+    
+    .photo-frame-simple { 
+        width: 350px; 
+        max-width: none;
+    }
+    
+    .player-box { max-width: 350px; padding: 15px; }
+    #audio-embed-container { height: 100px; }
+}
