@@ -3,80 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wedding Player - 給最愛的妳</title>
+    <title>Wedding Gift - 給我最愛的新娘子 Lilian</title>
+    <!-- 引入樣式 -->
     <link rel="stylesheet" href="css/style.css">
-    
-    <!-- 強力除錯腳本：若有錯誤直接顯示在螢幕上 -->
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            const errorBox = document.getElementById('debug-error-box');
-            if(errorBox) {
-                errorBox.style.display = 'block';
-                errorBox.innerHTML += `<p>❌ <strong>錯誤:</strong> ${message}<br><small>檔案: ${source} (第 ${lineno} 行)</small></p>`;
-                // 強制關閉 Loading 以便查看錯誤
-                document.getElementById('loader').style.display = 'none';
-            }
-        };
-    </script>
-    <style>
-        #debug-error-box {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100%;
-            background: rgba(180, 0, 0, 0.9); color: white;
-            padding: 20px; z-index: 10000; font-size: 14px;
-            box-sizing: border-box; overflow-y: auto; max-height: 50vh;
-        }
-    </style>
 </head>
 <body>
-
-    <!-- 錯誤顯示區 -->
-    <div id="debug-error-box"></div>
 
     <!-- 載入中遮罩 -->
     <div id="loader">
         <div class="loader-content">
             <div class="spinner"></div>
-            <p>正在準備驚喜...</p>
+            <p>Loading...</p>
         </div>
     </div>
 
-    <audio id="audio-player"></audio>
-
     <div class="app-container">
+        <!-- 上半部/左側：播放舞台 (Stage) -->
         <section id="stage-area">
+            
+            <!-- 預設歡迎畫面 -->
             <div id="welcome-view" class="active">
                 <div class="welcome-text">
                     <h1>Happy Wedding</h1>
                     <p>請從列表選擇一則祝福播放</p>
                 </div>
             </div>
-            <div class="vinyl-wrapper" id="vinyl-view">
-                <div class="vinyl-record" id="vinyl-disk">
-                    <div class="album-cover-mask">
-                        <img src="" class="album-cover" id="album-cover">
+
+            <!-- 音訊模式：復古卡帶機 (純視覺) -->
+            <div class="cassette-wrapper" id="cassette-view">
+                <div class="cassette-body">
+                    <!-- 頂部裝飾 -->
+                    <div class="cassette-header">
+                        <span class="screw"></span>
+                        <span class="tape-name">WEDDING MIX TAPE</span>
+                        <span class="screw"></span>
+                    </div>
+                    
+                    <!-- 中間貼紙 (Label) -->
+                    <div class="cassette-label">
+                        <div class="label-content">
+                            <h3 id="tape-name">Title</h3>
+                            <div class="tape-window">
+                                <div class="spool left"></div>
+                                <div class="tape-connector"></div>
+                                <div class="spool right"></div>
+                            </div>
+                        </div>
+                        <!-- 用合照當作貼紙背景 -->
+                        <div class="label-bg" id="tape-cover-bg"></div>
+                    </div>
+
+                    <!-- 底部孔洞 -->
+                    <div class="cassette-footer">
+                        <div class="hole"></div>
+                        <div class="hole"></div>
                     </div>
                 </div>
+                
+                <!-- 這裡放置 Google 的 Iframe 播放器 -->
+                <div id="audio-controls-container"></div>
             </div>
+
+            <!-- 影片模式：播放器 -->
             <div class="video-wrapper" id="video-view">
-                <video id="video-player" controls playsinline></video>
+                <!-- JS 會在這裡動態插入 Iframe -->
             </div>
+
+            <!-- 底部資訊列 -->
             <div class="stage-caption" id="stage-info">
-                <h2 id="current-name"></h2>
-                <div id="current-msg" style="display:none;"></div>
+                <div id="current-msg"></div>
             </div>
         </section>
 
+        <!-- 下半部/右側：播放列表 (Playlist) -->
         <section id="playlist-area">
             <div class="playlist-header">
                 <h3>祝福列表</h3>
                 <span id="count-badge">0</span>
             </div>
-            <div id="playlist-content"></div>
+            <div id="playlist-content">
+                <!-- JS 會自動在這裡產生列表 -->
+            </div>
         </section>
     </div>
 
-    <!-- 依序載入 -->
+    <!-- 引入資料與邏輯 -->
     <script src="js/data.js"></script>
     <script src="js/script.js"></script>
 </body>
