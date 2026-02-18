@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wedding Gift - 給我最愛的新娘子 Lilian</title>
+    <title>給Lonely最愛的新娘子Lilian </title>
     <!-- 引入樣式 -->
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -29,39 +29,20 @@
                 </div>
             </div>
 
-            <!-- 音訊模式：復古卡帶機 (純視覺) -->
-            <div class="cassette-wrapper" id="cassette-view">
-                <div class="cassette-body">
-                    <!-- 頂部裝飾 -->
-                    <div class="cassette-header">
-                        <span class="screw"></span>
-                        <span class="tape-name">WEDDING MIX TAPE</span>
-                        <span class="screw"></span>
-                    </div>
-                    
-                    <!-- 中間貼紙 (Label) -->
-                    <div class="cassette-label">
-                        <div class="label-content">
-                            <h3 id="tape-name">Title</h3>
-                            <div class="tape-window">
-                                <div class="spool left"></div>
-                                <div class="tape-connector"></div>
-                                <div class="spool right"></div>
-                            </div>
-                        </div>
-                        <!-- 用合照當作貼紙背景 -->
-                        <div class="label-bg" id="tape-cover-bg"></div>
-                    </div>
-
-                    <!-- 底部孔洞 -->
-                    <div class="cassette-footer">
-                        <div class="hole"></div>
-                        <div class="hole"></div>
-                    </div>
+            <!-- 音訊模式：簡約合照 + 播放器 -->
+            <div class="audio-wrapper" id="audio-view">
+                <!-- 合照展示區 -->
+                <div class="photo-frame-simple">
+                    <img id="audio-cover-img" src="" alt="Friend Photo">
                 </div>
                 
-                <!-- 這裡放置 Google 的 Iframe 播放器 -->
-                <div id="audio-controls-container"></div>
+                <!-- 播放器區 -->
+                <div class="player-box">
+                    <div class="player-label">正在播放錄音...</div>
+                    <div id="audio-embed-container">
+                        <!-- JS 會在這裡插入 iframe -->
+                    </div>
+                </div>
             </div>
 
             <!-- 影片模式：播放器 -->
