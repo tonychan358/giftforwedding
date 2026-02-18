@@ -3,8 +3,6 @@
     --bg-color: #121212;
     --panel-bg: #1e1e1e;
     --accent: #d4a5a5; /* 藕粉金 */
-    --cassette-body: #e0e0e0; /* 卡帶塑膠殼顏色 */
-    --cassette-dark: #333;
     --text-main: #fff;
     --border: #333;
 }
@@ -35,7 +33,7 @@ body {
 
 /* === 左/上：播放舞台 (Stage) === */
 #stage-area {
-    flex: 5; /* 調整比例 */
+    flex: 5; 
     background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%);
     position: relative;
     display: flex;
@@ -50,109 +48,67 @@ body {
 #welcome-view.active { display: block; }
 #welcome-view h1 { font-weight: 300; letter-spacing: 2px; color: var(--accent); margin: 0; }
 
-/* === 復古卡帶設計 (Cassette CSS) === */
-.cassette-wrapper {
+/* === 音訊模式：簡約合照設計 === */
+.audio-wrapper {
     display: none; /* JS 控制 */
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
     gap: 20px;
-    transform: scale(0.9); /* 手機版稍微縮小 */
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.cassette-body {
-    width: 300px; height: 190px;
-    background: var(--cassette-body);
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
+/* 合照相框 */
+.photo-frame-simple {
+    width: 280px; 
+    height: 280px;
+    background: #000;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    overflow: hidden;
+    border: 1px solid #333;
     position: relative;
+    flex-shrink: 0; /* 防止被壓扁 */
+}
+
+.photo-frame-simple img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 播放器容器 */
+.player-box {
+    width: 100%;
+    max-width: 320px;
+    background: #000;
+    border-radius: 8px;
     padding: 10px;
     box-sizing: border-box;
-    display: flex; flex-direction: column;
-    justify-content: space-between;
+    border: 1px solid #222;
 }
 
-/* 卡帶貼紙 (Label) */
-.cassette-label {
-    background: #fff;
-    flex: 1;
-    margin: 5px 0;
-    border-radius: 8px;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid #ccc;
+.player-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+    text-align: center;
+    letter-spacing: 1px;
 }
 
-/* 用合照當背景，加一點模糊 */
-.label-bg {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-size: cover; background-position: center;
-    opacity: 0.3; filter: blur(1px) grayscale(0.3);
-    z-index: 0;
-}
-
-.label-content {
-    position: relative; z-index: 1;
-    height: 100%;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-}
-
-.label-content h3 {
-    margin: 0 0 10px 0;
-    color: #333;
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
-    background: rgba(255,255,255,0.7);
-    padding: 2px 8px;
-}
-
-/* 透明視窗與轉輪 */
-.tape-window {
-    width: 160px; height: 40px;
-    background: rgba(0,0,0,0.8);
-    border-radius: 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 15px;
-    position: relative;
-}
-
-.spool {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: #fff;
-    border: 4px solid #555;
-    position: relative;
-}
-/* 輪軸上的齒 */
-.spool::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-conic-gradient(#fff 0 10%, #999 10% 20%);
-    border-radius: 50%;
-}
-
-.tape-connector {
-    height: 2px; flex: 1; background: #333; margin: 0 5px;
-}
-
-/* 卡帶頭尾裝飾 */
-.cassette-header { display: flex; justify-content: space-between; padding: 0 10px; color: #888; font-size: 10px; font-weight: bold; }
-.cassette-footer { display: flex; justify-content: center; gap: 40px; }
-.hole { width: 10px; height: 10px; background: #333; border-radius: 50%; }
-.screw { width: 8px; height: 8px; background: #bbb; border-radius: 50%; box-shadow: inset 1px 1px 1px rgba(0,0,0,0.5); }
-
-/* Google Player 容器 */
-#audio-controls-container {
-    width: 300px;
-    height: 54px; /* Google Audio Player 的標準高度 */
-    background: #000;
+#audio-embed-container {
+    width: 100%;
+    /* Google Drive Preview 的 iframe 需要一點高度才能顯示 Play Bar */
+    /* 設為 100px 可以剛好露出下方控制列，隱藏上方大部分黑畫面 */
+    height: 100px; 
     border-radius: 4px;
     overflow: hidden;
-    margin-top: 10px;
+    background: #000;
 }
-#audio-controls-container iframe { border: none; }
+#audio-embed-container iframe { border: none; display: block; }
 
 /* === 影片元件 === */
 .video-wrapper {
@@ -168,7 +124,8 @@ body {
 }
 #current-msg { 
     margin: 5px 20px 0; font-size: 0.95rem; color: #eee; 
-    background: rgba(0,0,0,0.6); display: inline-block; padding: 5px 15px; border-radius: 20px;
+    background: rgba(0,0,0,0.6); display: inline-block; padding: 8px 20px; border-radius: 30px;
+    backdrop-filter: blur(4px);
 }
 
 /* === 右/下：播放列表 (Playlist) === */
@@ -222,5 +179,7 @@ body {
     .app-container { flex-direction: row; }
     #stage-area { flex: 6; border-bottom: none; border-right: 1px solid var(--border); }
     #playlist-area { flex: 4; max-width: 400px; }
-    .cassette-wrapper { transform: scale(1.2); }
+    .audio-wrapper { flex-direction: row; gap: 40px; } /* 電腦版改為左右排列 */
+    .photo-frame-simple { width: 400px; height: 400px; }
+    .player-box { max-width: 350px; }
 }
