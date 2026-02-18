@@ -5,15 +5,14 @@ const countBadge = document.getElementById('count-badge');
 
 // Stage 元素
 const welcomeView = document.getElementById('welcome-view');
-const cassetteView = document.getElementById('cassette-view');
+const audioView = document.getElementById('audio-view');
 const videoView = document.getElementById('video-view');
 const stageInfo = document.getElementById('stage-info');
 const currentMsg = document.getElementById('current-msg');
 
-// 卡帶元件
-const tapeName = document.getElementById('tape-name');
-const tapeCoverBg = document.getElementById('tape-cover-bg');
-const audioControlsContainer = document.getElementById('audio-controls-container');
+// 音訊模式元件
+const audioCoverImg = document.getElementById('audio-cover-img');
+const audioEmbedContainer = document.getElementById('audio-embed-container');
 
 // 0. 修復 Favicon 404
 const link = document.createElement('link');
@@ -54,7 +53,9 @@ function renderPlaylist() {
     WISHES_DATA.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'track-item';
-        const icon = item.type === 'video' ? '🎬' : '📼'; // 使用卡帶 Emoji
+        
+        // 判斷類型顯示圖示
+        const icon = item.type === 'video' ? '🎬' : '🎤'; 
         
         const cover = (item.cover && item.cover.startsWith('http')) 
             ? item.cover 
@@ -105,28 +106,29 @@ function playIndex(index) {
 
     if (item.type === 'video') {
         // === 影片模式 ===
-        cassetteView.style.display = 'none';
+        audioView.style.display = 'none';
         videoView.style.display = 'flex';
         
         // 載入影片 Iframe
         videoView.innerHTML = `<iframe src="${src}" width="100%" height="100%" style="border:none;" allow="autoplay; fullscreen"></iframe>`;
 
     } else {
-        // === 卡帶音訊模式 ===
+        // === 音訊模式 (顯示合照) ===
         videoView.style.display = 'none';
-        cassetteView.style.display = 'flex';
+        audioView.style.display = 'flex'; // 確保是 flex 以便居中
         
-        // 更新卡帶視覺
-        tapeName.textContent = item.name;
-        // 使用合照作為卡帶貼紙背景
-        tapeCoverBg.style.backgroundImage = `url('${item.cover}')`;
+        // 更新合照
+        const displayCover = (item.cover && item.cover.startsWith('http')) 
+            ? item.cover 
+            : "https://placehold.co/400x400/222/fff?text=Wedding";
+        audioCoverImg.src = displayCover;
 
-        // 載入音訊 Iframe (放在卡帶下方)
-        audioControlsContainer.innerHTML = `<iframe src="${src}" width="100%" height="100%" style="border:none;" allow="autoplay"></iframe>`;
+        // 載入音訊 Iframe (高度設為 100% 配合 CSS 限制)
+        audioEmbedContainer.innerHTML = `<iframe src="${src}" width="100%" height="100%" style="border:none;" allow="autoplay"></iframe>`;
     }
 }
 
 function stopAll() {
     videoView.innerHTML = "";
-    audioControlsContainer.innerHTML = "";
+    audioEmbedContainer.innerHTML = "";
 }
