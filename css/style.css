@@ -25,7 +25,7 @@ body {
 /* 遮罩層 (移到 body 下) */
 #playlist-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); z-index: 99; /* 高於 app-container */
+    background: rgba(0,0,0,0.5); z-index: 99;
     opacity: 0; pointer-events: none; transition: opacity 0.3s;
 }
 body.list-expanded #playlist-overlay { opacity: 1; pointer-events: auto; }
@@ -237,9 +237,9 @@ body.list-expanded #playlist-drawer { transform: translateY(0); }
         height: 100%;
     }
     
-    /* 左側舞台 */
+    /* 左側舞台 (佔據剩餘空間) */
     #stage-area { 
-        flex: 6; 
+        flex: 1; 
         width: auto;
         height: 100%; 
         padding-bottom: 0; 
@@ -247,13 +247,14 @@ body.list-expanded #playlist-drawer { transform: translateY(0); }
         z-index: 1;
     }
     
-    /* 右側列表 - 強制靜態定位 */
+    /* 右側列表 (固定寬度 350px) */
     #playlist-drawer {
         position: static !important; /* 關鍵：解除 fixed 狀態 */
         transform: none !important;  /* 關鍵：解除位移 */
         
-        flex: 4; 
-        width: auto !important;
+        /* 固定寬度，不隨螢幕變寬 */
+        flex: 0 0 350px; 
+        width: 350px !important;
         height: 100% !important;
         
         border-radius: 0; 
