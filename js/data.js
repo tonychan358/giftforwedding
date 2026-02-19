@@ -17,35 +17,35 @@ const WISHES_DATA = [
         "type": "audio",
         "name": "Tung Tung & Thomas",
         "cover": "https://drive.google.com/thumbnail?id=1NMgXctS1m5EZ9k7UM49TpBJxWm68Y527&sz=w800",
-        "src": "tung&thomas.mp4",
+        "src": "media/tungthomas.mp4",
         "message": "卓琳 & Lonely 祝你們新婚快樂！願主的恩典充滿你們的婚姻，心心相印，攜手共度美好人生，幸福美滿、和諧共融。願愛與信仰在你們的生活中常伴隨，永遠相愛，共享主的祝福！"
     },
     {
         "type": "audio",
         "name": "Sin ling",
         "cover": "https://drive.google.com/thumbnail?id=1w3R-DNkBaHt1Olz1LsOORhds_MAP7lV2&sz=w800",
-        "src": "sinling.mp4",
+        "src": "media/sinling.mp4",
         "message": "Congratulations！希望你婚後人生更精彩😆😆"
     },
     {
         "type": "audio",
         "name": "Miss Wing",
         "cover": "https://drive.google.com/thumbnail?id=1VaTr3QHqJ0R9XGi5CukO9ke-jKAe09wM&sz=w800",
-        "src": "misswing.mp4",
+        "src": "media/misswing.mp4",
         "message": ""
     },
     {
         "type": "audio",
         "name": "善悠 善潼",
         "cover": "https://drive.google.com/thumbnail?id=165bT6XxQwDBr_4QWsUZ8biDwXz2z7tEM&sz=w800",
-        "src": "善悠善潼.mp4",
+        "src": "media/善悠善潼.mp4",
         "message": "Congratulations"
     },
     {
         "type": "audio",
         "name": "心善",
         "cover": "https://drive.google.com/thumbnail?id=1QJCSKQcTfLu68CP9h6_Zim7P4pcUUdRB&sz=w800",
-        "src": "心善.mp4",
+        "src": "media/心善.mp4",
         "message": ""
     },
     {
