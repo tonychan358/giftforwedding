@@ -6,7 +6,7 @@
     --text-main: #fff;
     --border: #333;
     --drawer-height: 75vh; 
-    --drawer-peek: 80px; /*稍微露出一點，方便點擊*/
+    --drawer-peek: 80px; 
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -16,7 +16,11 @@ body {
     background-color: var(--bg-color);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    height: 100dvh; width: 100%; overflow: hidden;
+    /* 雙重高度設定，確保相容性 */
+    height: 100vh; 
+    height: 100dvh; 
+    width: 100%; 
+    overflow: hidden;
 }
 
 .app-container { 
@@ -44,6 +48,7 @@ body {
     background: #000;
     /* 手機版：留空間給下方列表的標題 */
     padding-bottom: calc(var(--drawer-peek) + 20px);
+    transition: padding 0.3s;
 }
 
 /* 歡迎畫面 */
@@ -56,7 +61,7 @@ body {
     display: none; flex-direction: column;
     align-items: center; justify-content: center;
     width: 100%; 
-    gap: 25px; /* 增加間距 */
+    gap: 25px;
 }
 
 /* 視覺容器 */
@@ -72,9 +77,9 @@ body {
 .photo-frame-simple {
     position: relative;
     z-index: 10;
-    width: 70vw; /* 佔螢幕寬度 70% */
-    max-width: 320px; /* 最大限制 */
-    aspect-ratio: 1 / 1; /* 保持正方形 */
+    width: 70vw; 
+    max-width: 320px; 
+    aspect-ratio: 1 / 1; 
     background: #000;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.6);
@@ -86,8 +91,8 @@ body {
 /* 黑膠唱片 */
 .vinyl-record {
     position: absolute;
-    top: 5%; right: 5%; /* 相對位置 */
-    width: 65vw; height: 65vw; /* 跟著相框大小變 */
+    top: 5%; right: 5%; 
+    width: 65vw; height: 65vw; 
     max-width: 300px; max-height: 300px;
     border-radius: 50%;
     background: repeating-radial-gradient(#111 0, #111 2px, #222 3px, #222 4px);
@@ -109,10 +114,10 @@ body {
 /* 播放時的動畫狀態 */
 .audio-wrapper.playing .vinyl-record {
     animation: spin 4s linear infinite;
-    transform: translateX(15%) rotate(0deg); /* 播放時往右移出來 */
+    transform: translateX(15%) rotate(0deg); 
 }
 .audio-wrapper.playing .photo-frame-simple {
-    transform: translateX(-10%); /* 相框往左移一點 */
+    transform: translateX(-10%); 
     transition: transform 0.5s ease;
 }
 
@@ -180,11 +185,11 @@ body {
     box-shadow: 0 -5px 30px rgba(0,0,0,0.5);
     z-index: 100;
     display: flex; flex-direction: column;
-    /* 預設只露出頭 */
+    /* 手機版預設：只露出標題 (往下藏起來) */
     transform: translateY(calc(100% - var(--drawer-peek)));
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-/* 展開狀態 */
+/* 手機版展開狀態 */
 body.list-expanded #playlist-drawer { transform: translateY(0); }
 
 /* 遮罩 */
@@ -233,41 +238,52 @@ body.list-expanded #playlist-overlay { opacity: 1; pointer-events: auto; }
 
 /* === PC 版 RWD (電腦/iPad) === */
 @media (min-width: 768px) {
+    /* 主容器改為橫向排列 */
     .app-container { 
         flex-direction: row; 
         align-items: stretch;
+        overflow: hidden;
     }
     
+    /* 左側舞台 */
     #stage-area { 
-        /* 佔 60% */
-        flex: 6; 
+        flex: 1; /* 吃掉剩餘空間 */
         width: auto;
         height: 100%; 
         padding-bottom: 0; 
         border-right: 1px solid var(--border);
+        z-index: 2;
     }
     
-    /* 修正列表消失的問題：強制重置所有定位 */
+    /* 右側列表 - 強制重置 */
     #playlist-drawer {
-        position: relative; 
-        transform: none !important;
-        /* 佔 40% */
-        flex: 4; 
-        width: auto;
-        height: 100%;
+        position: static !important; /* 關鍵：取消 fixed，回歸文檔流 */
+        transform: none !important;  /* 關鍵：取消抽屜位移 */
+        
+        flex: 0 0 400px; /* 固定寬度 400px */
+        width: 400px !important;
+        height: 100% !important;
+        
         border-radius: 0; 
         box-shadow: none;
         background: var(--panel-bg);
+        border-left: 1px solid var(--border);
         z-index: 1;
-        /* 重置位置 */
+        
+        /* 重置可能影響的偏移 */
         left: auto; bottom: auto; top: auto; right: auto;
+        
+        /* 確保顯示 */
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
     
-    /* 隱藏手機版專用元件 */
+    /* 隱藏手機版專用的按鈕與遮罩 */
     .drawer-handle-area, #playlist-overlay, #toggle-list-btn { display: none !important; }
     .playlist-header { cursor: default; }
     
-    /* 調整元件大小 */
+    /* 調整電腦版元件大小 */
     .photo-frame-simple { width: 350px; max-width: none; height: 350px; }
     .vinyl-record { width: 320px; max-width: none; height: 320px; max-height: none; }
     .stage-caption { bottom: 40px; }
