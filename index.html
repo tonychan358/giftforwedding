@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>給Lonely最愛的新娘子Lilian</title>
+    <title>給Lonely最愛的新娘子</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- 加入 FontAwesome 圖示 (用於播放按鈕) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -15,8 +17,12 @@
         </div>
     </div>
 
+    <!-- 隱藏的原生播放器 (負責聲音) -->
+    <audio id="audio-player"></audio>
+
     <div class="app-container">
-        <!-- 上半部：播放舞台 (預設佔大版面) -->
+        
+        <!-- 上半部：播放舞台 -->
         <section id="stage-area">
             
             <div id="welcome-view" class="active">
@@ -26,35 +32,60 @@
                 </div>
             </div>
 
-            <!-- 音訊模式 -->
+            <!-- 音訊模式：照片 + 黑膠 + 自訂控制 -->
             <div class="audio-wrapper" id="audio-view">
-                <div class="photo-frame-simple">
-                    <img id="audio-cover-img" src="" alt="Cover">
+                
+                <!-- 照片與黑膠容器 -->
+                <div class="visual-container">
+                    <!-- 相框 -->
+                    <div class="photo-frame-simple">
+                        <img id="audio-cover-img" src="" alt="Cover">
+                    </div>
+                    <!-- 黑膠唱片 (裝飾用，會旋轉) -->
+                    <div class="vinyl-record" id="vinyl-disk">
+                        <div class="vinyl-texture"></div>
+                        <div class="vinyl-label" id="vinyl-label-img"></div>
+                    </div>
                 </div>
                 
-                <div class="player-box">
-                    <div id="audio-embed-container"></div>
+                <!-- 自訂播放控制器 -->
+                <div class="custom-controls">
+                    <button id="btn-prev" class="control-btn sm"><i class="fa-solid fa-backward-step"></i></button>
+                    <button id="btn-play" class="control-btn lg"><i class="fa-solid fa-play"></i></button>
+                    <button id="btn-next" class="control-btn sm"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+                
+                <!-- 進度條 -->
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
                 </div>
             </div>
 
-            <!-- 影片模式 -->
+            <!-- 影片模式 (維持 Embed 以確保相容性) -->
             <div class="video-wrapper" id="video-view"></div>
 
             <div class="stage-caption" id="stage-info">
+                <h2 id="current-name"></h2>
                 <div id="current-msg"></div>
             </div>
         </section>
 
-        <!-- 下半部：播放列表 (預設收起) -->
-        <section id="playlist-area">
-            <!-- 點擊這個 Header 也可以切換展開/收起 -->
+        <!-- 下半部：播放列表 (浮動抽屜) -->
+        <div id="playlist-overlay" onclick="togglePlaylist()"></div>
+        
+        <section id="playlist-drawer">
+            <div class="drawer-handle-area" onclick="togglePlaylist()">
+                <div class="drawer-handle"></div>
+            </div>
+
             <div class="playlist-header" onclick="togglePlaylist()">
                 <div class="header-left">
                     <h3>祝福列表</h3>
                     <span id="count-badge">0</span>
                 </div>
-                <button id="toggle-list-btn">🔼 展開</button>
+                <button id="toggle-list-btn">🔼 展開列表</button>
             </div>
+            
             <div id="playlist-content">
                 <!-- JS 生成列表 -->
             </div>
