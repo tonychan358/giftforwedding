@@ -22,16 +22,19 @@ body {
     overflow: hidden;
 }
 
-/* 遮罩層 (移到 body 下) */
+/* 遮罩層 */
 #playlist-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); z-index: 99;
+    background: rgba(0,0,0,0.6); 
+    z-index: 50; /* 設定為 50，高於舞台(1)，但低於列表(100) */
     opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    backdrop-filter: blur(2px); /* 增加一點模糊質感 */
 }
 body.list-expanded #playlist-overlay { opacity: 1; pointer-events: auto; }
 
 .app-container { 
-    position: relative; width: 100%; height: 100%; z-index: 1;
+    position: relative; width: 100%; height: 100%; 
+    /* z-index: 1;  <-- 關鍵修正：移除了這一行！ */
 }
 
 /* === Loading === */
@@ -55,7 +58,7 @@ body.list-expanded #playlist-overlay { opacity: 1; pointer-events: auto; }
     background: #000;
     padding-bottom: calc(var(--drawer-peek) + 20px);
     transition: padding 0.3s;
-    z-index: 1;
+    z-index: 1; /* 舞台層級低，會被遮罩蓋住 */
 }
 
 /* 歡迎畫面 */
@@ -182,9 +185,8 @@ body.list-expanded #playlist-overlay { opacity: 1; pointer-events: auto; }
     background: var(--panel-bg);
     border-top-left-radius: 20px; border-top-right-radius: 20px;
     box-shadow: 0 -5px 30px rgba(0,0,0,0.5);
-    z-index: 100;
+    z-index: 100; /* 設定為 100，必須比遮罩(50)高 */
     display: flex; flex-direction: column;
-    /* 手機版：預設隱藏 */
     transform: translateY(calc(100% - var(--drawer-peek)));
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -228,7 +230,6 @@ body.list-expanded #playlist-drawer { transform: translateY(0); }
 
 /* === PC 版 RWD (電腦/iPad) === */
 @media (min-width: 768px) {
-    /* 主容器改為橫向排列 */
     .app-container { 
         display: flex;
         flex-direction: row; 
@@ -237,7 +238,6 @@ body.list-expanded #playlist-drawer { transform: translateY(0); }
         height: 100%;
     }
     
-    /* 左側舞台 (佔據剩餘空間) */
     #stage-area { 
         flex: 1; 
         width: auto;
@@ -247,12 +247,10 @@ body.list-expanded #playlist-drawer { transform: translateY(0); }
         z-index: 1;
     }
     
-    /* 右側列表 (固定寬度 350px) */
     #playlist-drawer {
-        position: static !important; /* 關鍵：解除 fixed 狀態 */
-        transform: none !important;  /* 關鍵：解除位移 */
+        position: static !important;
+        transform: none !important;
         
-        /* 固定寬度，不隨螢幕變寬 */
         flex: 0 0 350px; 
         width: 350px !important;
         height: 100% !important;
@@ -263,15 +261,15 @@ body.list-expanded #playlist-drawer { transform: translateY(0); }
         border-left: 1px solid var(--border);
         z-index: 1;
         
-        display: flex !important; /* 確保顯示 */
+        display: flex !important;
     }
     
-    /* 隱藏手機版專用的按鈕與遮罩 */
     .drawer-handle-area, #playlist-overlay, #toggle-list-btn { display: none !important; }
     .playlist-header { cursor: default; }
     
-    /* 調整電腦版元件大小 */
     .photo-frame-simple { width: 350px; max-width: none; height: 350px; }
     .vinyl-record { width: 320px; max-width: none; height: 320px; max-height: none; }
     .stage-caption { bottom: 40px; }
 }
+
+
