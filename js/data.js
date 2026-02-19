@@ -3,49 +3,49 @@ const WISHES_DATA = [
         "type": "audio",
         "name": "你美麗的姐Emily❤️",
         "cover": "https://drive.google.com/thumbnail?id=1jUQR6EPCnibgBHiH8d6isDWX70cx-w9t&sz=w800",
-        "src": "https://drive.google.com/file/d/1OuBf9lr0HlfDyQFGF0E5Z0UroYTpLDUo/preview",
+        "src": "media/emily.mp4",
         "message": ""
     },
     {
         "type": "audio",
         "name": "Virginia Kwong",
         "cover": "https://drive.google.com/thumbnail?id=18z5sr4J-a2_rtL7refdn-GSpaFnlqcBf&sz=w800",
-        "src": "https://drive.google.com/file/d/1TQeYE22sHLDu2SyW1J5y4z-5NHxusa1Z/preview",
+        "src": "media/virginia.mp4",
         "message": "Congratulations on your special day, Lilian and Lonely. I wish you an endless supply of love, happiness, and laughter. May your lives be filled with beautiful moments. xoxo."
     },
     {
         "type": "audio",
         "name": "Tung Tung & Thomas",
         "cover": "https://drive.google.com/thumbnail?id=1NMgXctS1m5EZ9k7UM49TpBJxWm68Y527&sz=w800",
-        "src": "https://drive.google.com/file/d/15g0E6-stwMhqvIiWKGEOfxiKkRUpz2ci/preview",
+        "src": "tung&thomas.mp4",
         "message": "卓琳 & Lonely 祝你們新婚快樂！願主的恩典充滿你們的婚姻，心心相印，攜手共度美好人生，幸福美滿、和諧共融。願愛與信仰在你們的生活中常伴隨，永遠相愛，共享主的祝福！"
     },
     {
         "type": "audio",
         "name": "Sin ling",
         "cover": "https://drive.google.com/thumbnail?id=1w3R-DNkBaHt1Olz1LsOORhds_MAP7lV2&sz=w800",
-        "src": "https://drive.google.com/file/d/1O_HeV_iSlscUuvmkg69pas1Pn_n43AM4/preview",
+        "src": "sinling.mp4",
         "message": "Congratulations！希望你婚後人生更精彩😆😆"
     },
     {
         "type": "audio",
         "name": "Miss Wing",
         "cover": "https://drive.google.com/thumbnail?id=1VaTr3QHqJ0R9XGi5CukO9ke-jKAe09wM&sz=w800",
-        "src": "https://drive.google.com/file/d/13pwIo39IFhMfR2cJtnTBNqsYH0wU55KI/preview",
+        "src": "misswing.mp4",
         "message": ""
     },
     {
         "type": "audio",
         "name": "善悠 善潼",
         "cover": "https://drive.google.com/thumbnail?id=165bT6XxQwDBr_4QWsUZ8biDwXz2z7tEM&sz=w800",
-        "src": "https://drive.google.com/file/d/1zLFZ6fBOv_EOGI8E_vpEkfnIVLpM6bVt/preview",
+        "src": "善悠善潼.mp4",
         "message": "Congratulations"
     },
     {
         "type": "audio",
         "name": "心善",
         "cover": "https://drive.google.com/thumbnail?id=1QJCSKQcTfLu68CP9h6_Zim7P4pcUUdRB&sz=w800",
-        "src": "https://drive.google.com/file/d/16-9MPiXM2eAtbooU2R6gXeqzCTvuIQjU/preview",
+        "src": "心善.mp4",
         "message": ""
     },
     {
